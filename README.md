@@ -56,6 +56,7 @@ Count Sentiment Results (By Movie/Social Media Source)
 Visualize Sentiment Trends (Looker Studio)
   ↓
 End
+```
 
 
 ### 1. **Enable APIs on Google Cloud**
