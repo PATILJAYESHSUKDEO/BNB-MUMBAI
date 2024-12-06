@@ -1,3 +1,7 @@
+Here's the updated version of your document, integrating the provided SQL steps:
+
+---
+
 # Sentiment Analysis of Movies by Social Media Comments
 
 ## Table of Contents
@@ -68,6 +72,17 @@ Upload your social media comments dataset into **BigQuery**. Ensure the dataset 
 1. In the **BigQuery Console**, create a new dataset.
 2. Upload your dataset (in CSV/JSON format) into a table.
 
+#### SQL to load the data:
+```sql
+-- Load customer reviews data into BigQuery from a CSV file
+LOAD DATA OVERWRITE gemini_demo.customer_reviews 
+(customer_review_id INT64, customer_id INT64, location_id INT64, review_datetime DATETIME, review_text STRING, social_media_source STRING, social_media_handle STRING)
+FROM FILES (
+  format = 'CSV',
+  uris = ['gs://your-bucket-name/customer_reviews.csv']
+);
+```
+
 ---
 
 ### 4. **Create Model for Sentiment Analysis**
@@ -80,17 +95,41 @@ Train a sentiment analysis model using **Vertex AI** and **Gemini**. This model 
 3. Choose **Text Classification** as the model type.
 4. Train the model and deploy it.
 
+#### SQL to create the sentiment analysis model:
+```sql
+-- Create or replace a Gemini model in Vertex AI for sentiment analysis
+CREATE OR REPLACE MODEL `gemini_demo.gemini_pro` 
+REMOTE WITH CONNECTION `us.gemini_conn`
+OPTIONS (endpoint = 'gemini-pro');
+```
+
 ---
 
 ### 5. **Generate Sentiment Boolean**
 
 Once the model is deployed, use it to analyze the sentiment of each comment. The model will output a sentiment boolean for each comment, indicating whether the sentiment is positive, negative, or neutral.
 
-#### Example:
-```python
-# Sentiment analysis using deployed model
-response = vertex_ai.predict(project_id, model_id, input_data)
-sentiment = response['prediction']
+#### SQL to generate sentiment analysis:
+```sql
+-- Use the Gemini model to classify sentiment as positive or negative
+CREATE OR REPLACE TABLE 
+`gemini_demo.customer_reviews_analysis` AS (
+  SELECT ml_generate_text_llm_result, social_media_source, review_text, customer_id, location_id, review_datetime
+  FROM
+  ML.GENERATE_TEXT(
+    MODEL `gemini_demo.gemini_pro`,
+    (
+      SELECT social_media_source, customer_id, location_id, review_text, review_datetime, CONCAT(
+        'Classify the sentiment of the following text as positive or negative.',
+        review_text, " In your response don't include the sentiment explanation. Remove all extraneous information from your response, it should be a boolean response either positive or negative."
+      ) AS prompt
+      FROM `gemini_demo.customer_reviews`
+    ),
+    STRUCT(
+      0.2 AS temperature, TRUE AS flatten_json_output
+    )
+  )
+);
 ```
 
 ---
@@ -99,14 +138,13 @@ sentiment = response['prediction']
 
 You can order the data based on the timestamp of the comments to analyze sentiment over time.
 
-#### Query Example:
+#### SQL to order by datetime:
 ```sql
-SELECT movie_name, user_comment, sentiment, datetime
-FROM `project_id.dataset_name.table_name`
-ORDER BY datetime ASC;
+-- Retrieve the sentiment analysis results ordered by the review datetime
+SELECT * 
+FROM `gemini_demo.customer_reviews_analysis`
+ORDER BY review_datetime;
 ```
-
-This query will return comments ordered by the date and time they were posted.
 
 ---
 
@@ -114,14 +152,15 @@ This query will return comments ordered by the date and time they were posted.
 
 You can aggregate the sentiment analysis results to count the number of positive, negative, and neutral comments for each movie.
 
-#### Query Example:
+#### SQL to count sentiment by social media source:
 ```sql
-SELECT movie_name, sentiment, COUNT(*) AS count
-FROM `project_id.dataset_name.table_name`
-GROUP BY movie_name, sentiment;
+-- Count the number of positive and negative sentiments by social media source
+SELECT sentiment, social_media_source, COUNT(*) AS count 
+FROM `gemini_demo.cleaned_data_view`
+WHERE sentiment IN ('positive') OR sentiment IN ('negative')
+GROUP BY sentiment, social_media_source
+ORDER BY sentiment, count;
 ```
-
-This query will give you a count of positive, negative, and neutral comments for each movie.
 
 ---
 
@@ -143,3 +182,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 This **README** serves as a guide for setting up sentiment analysis on movie-related social media comments using **Google Cloud** services. Follow the instructions carefully to load data, create models, and analyze sentiment using **BigQuery** and **Vertex AI**.
+
+--- 
+
+This structure integrates the provided SQL code into the appropriate steps, making it part of a full guide to set up sentiment analysis using **Google Cloud** tools.
