@@ -35,6 +35,28 @@ Before you begin, make sure you have the following:
 ---
 
 ## Step-by-Step Guide
+Start
+  ↓
+Data Source (Social Media Comments)  
+  ↓
+Load Data into BigQuery
+  ↓
+Enable APIs (Vertex AI, BigQuery, Gemini)
+  ↓
+Assign IAM Roles
+  ↓
+Create Sentiment Analysis Model
+  ↓
+Generate Sentiment Boolean (Positive/Negative)
+  ↓
+Order by DateTime
+  ↓
+Count Sentiment Results (By Movie/Social Media Source)
+  ↓
+Visualize Sentiment Trends (Looker Studio)
+  ↓
+End
+
 
 ### 1. **Enable APIs on Google Cloud**
 
