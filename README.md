@@ -35,7 +35,8 @@ Before you begin, make sure you have the following:
 ---
 
 ## Step-by-Step Guide Flow
-```Start
+```
+Start
   ↓
 Data Source (Social Media Comments)  
   ↓
