@@ -1,5 +1,3 @@
-Here's the updated version of your document, integrating the provided SQL steps:
-
 ---
 
 # Sentiment Analysis of Movies by Social Media Comments
